@@ -23,8 +23,8 @@ kubeclt apply -f clusterissuer-cert-wildcard.yaml
 kubectl kustomize secrets
 - run the notes command on the top of file values-elsa-5.1.26.yaml
 - run command to apply rbac
-- cd jenkins-docker-templates run the command on readme.md 
   kubectl apply -f jenkins-rbac.yml
+- cd jenkins-docker-templates run the command on readme.md 
 - setup Jenkins publics URL, point to the aws loadbalancer, ( get this from nginx service)
 6. Deploy prometheus stack, Loki stack for monitoring metrics and application logging
 cd to prometheus-stack folder and loki-stack foler and run commands that noted in the value files.
@@ -34,7 +34,7 @@ cd to prometheus-stack folder and loki-stack foler and run commands that noted i
 cd templates and run command below to create secret
 kubectl apply -f secret.yaml
 8. Setup pipeline job
-- Go to Jenkins and run super-seed
+- Go to Jenkins and run super-seed, this job configure and deploy via Jenkins as code on step 5.
 9. Deploy application
 The hackathon foler has docker file in the docker folder, helm chart to deploy application in the helm foler, Jenkins file for the pipeline use to build, push image to ECR and deploy via script store on jenkins-share-libraries.
 It auto trigger the code when developer commit and deploy the apps. We also run it manually.
