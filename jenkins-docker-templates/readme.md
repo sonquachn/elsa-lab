@@ -1,0 +1,1 @@
+packer build docker-ami-ap-southeast-1-ubuntu-24.04.json

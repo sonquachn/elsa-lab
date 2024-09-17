@@ -1,4 +1,4 @@
-# helm upgrade -i ingress-nginx ingress-nginx/ingress-nginx -n ingress-nginx --values ~/elsa/ingress-nginx/ingress-nginx-values.yaml --version 4.10.1
+# helm upgrade -i ingress-nginx ingress-nginx/ingress-nginx -n ingress-nginx --create-namespace --values ~/elsa/ingress-nginx/ingress-nginx-values.yaml --version 4.10.1
 
 controller:
   metrics:

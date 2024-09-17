@@ -1,4 +1,4 @@
-# helm upgrade -i prometheus -n metrics prometheus-community/kube-prometheus-stack --values ~/elsa/prometheus-stack/values.yaml
+# helm upgrade -i prometheus -n metrics --create-namespace prometheus-community/kube-prometheus-stack --values ~/elsa/prometheus-stack/values.yaml
 
 
 defaultRules:

@@ -1,1 +1,1 @@
-# helm upgrade -i -n metrics prom-msteams prometheus-msteams/prometheus-msteams
+# helm upgrade -i -n metrics --create-namespace prom-msteams prometheus-msteams/prometheus-msteams

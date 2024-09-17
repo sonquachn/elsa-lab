@@ -4,6 +4,7 @@ tags = {
 
 ecr_name = [
   "hackathons-fe",
+  "elsa-lab",
   "hackathons-be"
 ]
 

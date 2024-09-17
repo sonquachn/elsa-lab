@@ -1,4 +1,4 @@
-# helm upgrade -i loki -n metrics grafana/loki-stack --values --values ~/elsa/loki-stack/values.yaml
+# helm upgrade -i loki -n metrics --create-namespace grafana/loki-stack --values --values ~/elsa/loki-stack/values.yaml
 
 test_pod:
   enabled: true

@@ -1,0 +1,36 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+  namespace: cert-manager
+spec:
+  acme:
+    # You must replace this email address with your own.
+    # Let's Encrypt will use this to contact you about expiring
+    # certificates, and issues related to your account.
+    email: quachngocsonit@gmail.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      # Secret resource that will be used to store the account's private key.
+      name: letsencrypt-prod
+    # Add a single challenge solver, HTTP01 using nginx
+    solvers:
+      - selector:
+          dnsZones:
+            - "sonquach.io"
+        dns01:
+          route53:
+            region: ap-southeast-1
+            accessKeyID: xxx
+            secretAccessKeySecretRef:
+              name: prod-route53-credentials-secret
+              key: secretaccessKeyID
+
+---
+apiVersion: v1
+data:
+  secretaccessKeyID: xxx
+kind: Secret
+metadata:
+  name: prod-route53-credentials-secret
+  namespace: cert-manager

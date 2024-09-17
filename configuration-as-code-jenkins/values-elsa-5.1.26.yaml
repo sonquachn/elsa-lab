@@ -1,7 +1,6 @@
 # helm repo add jenkins https://charts.jenkins.io
 # helm repo update
-# kubectl create namespace jenkins
-# helm upgrade -i -n jenkins jenkins jenkins/jenkins --values ~/DATA/configuration-as-code-jenkins-k8s/values-elsa-5.1.26.yaml  --version 5.1.26
+# helm upgrade -i -n jenkins jenkins jenkins/jenkins --create-namespace --values ~/DATA/configuration-as-code-jenkins-k8s/values-elsa-5.1.26.yaml  --version 5.1.26
 
 # controller
 controller:
