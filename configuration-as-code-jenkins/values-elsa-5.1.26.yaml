@@ -1,0 +1,379 @@
+# helm repo add jenkins https://charts.jenkins.io
+# helm repo update
+# kubectl create namespace jenkins
+# helm upgrade -i -n jenkins jenkins jenkins/jenkins --values ~/DATA/configuration-as-code-jenkins-k8s/values-elsa-5.1.26.yaml  --version 5.1.26
+
+# controller
+controller:
+  installPlugins:
+    - kubernetes:4238.v41b_3ef14a_5d8
+    - workflow-aggregator:596.v8c21c963d92d
+    - git:5.2.2
+    - configuration-as-code:1810.v9b_c30a_249a_4c
+    - aws-credentials:218.v1b_e9466ec5da_
+    - generic-webhook-trigger:2.0.0
+    - job-dsl:1.87
+    - role-strategy:689.v731678c3e0eb_
+    # - dark-theme:315.va_22e7d692ea_a
+    - Office-365-Connector:4.18.0
+    - ec2:1648.vf3d852e00486
+    - thinBackup:1.17
+    - blueocean:1.27.3
+    - pipeline-stage-view:2.32
+    - pipeline-rest-api:2.32
+  installLatestPlugins: true
+  initializeOnce: true
+  installLatestSpecifiedPlugins: false
+  executorMode: "NORMAL"
+  # Configures if plugins bundled with `controller.image` should be overwritten with the values of 'controller.installPlugins' on upgrade or redeployment.
+  overwritePluginsFromImage: true
+  componentName: "jenkins-controller"
+  image:
+    registry: "docker.io"
+    repository: "jenkins/jenkins"
+  # tag: "2.401.2-jdk11"
+    tagLabel: jdk17
+    pullPolicy: "Always"
+  resources:
+    limits:
+      cpu: "1500m"
+      memory: "2500Mi"
+
+  # podAnnotations:
+  #   vault.security.banzaicloud.io/vault-addr: "https://vault-lab.sonquach.io"
+  #   vault.security.banzaicloud.io/vault-role: "default"
+  #   vault.security.banzaicloud.io/vault-skip-verify: "true"
+  #   vault.security.banzaicloud.io/vault-path: "kubernetes"
+
+  tolerations:
+    - operator: Exists
+
+  # affinity:
+  #   nodeAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       nodeSelectorTerms:
+  #         - matchExpressions:
+  #             - key: Name
+  #               operator: In
+  #               values:
+  #                 - "infra_nodes"
+
+  containerEnv: # Use vault value if deploy vault
+    - name: JENKINS_BITBUCKET_SSH
+      valueFrom:
+        secretKeyRef:
+          name: bitbucket-ssh
+          key: ssh
+    - name: EC2_PRIVATE_KEY
+      valueFrom:
+        secretKeyRef:
+          name: ec2-private-key
+          key: private
+    - name: AWS_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: aws-access-key
+          key: access
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: aws-secret-key
+          key: secret
+    - name: ECR_AWS_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: ecr-access-key
+          key: ecraccess
+    - name: ECR_AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: ecr-secret-key
+          key: ecrsecret
+    - name: ADMIN_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: admin-password
+          key: admin.password
+
+  JCasC:
+    # Setup user
+    securityRealm: |-
+      local:
+        allowsSignup: false
+        enableCaptcha: false
+        users:
+        - id: "admin"
+          name: "Jenkins Admin"
+          password: "${ADMIN_PASSWORD}"
+
+    defaultConfig: true
+    configScripts:
+      welcome-message: |
+        credentials:
+          system:
+            domainCredentials:
+              - credentials:
+                - basicSSHUserPrivateKey:
+                    scope: GLOBAL
+                    id: jenkins-bitbucket-ssh
+                    username:
+                    passphrase:
+                    description: "SSH key for Bitbucket"
+                    privateKeySource:
+                      directEntry:
+                        privateKey: ${JENKINS_BITBUCKET_SSH}
+                - basicSSHUserPrivateKey:
+                    scope: GLOBAL
+                    id: ec2-private-key
+                    username:
+                    passphrase:
+                    description: "EC2 Private Key for Docker Build"
+                    privateKeySource:
+                      directEntry:
+                        privateKey: ${EC2_PRIVATE_KEY}
+                - aws:
+                    scope: GLOBAL
+                    id: "aws"
+                    accessKey: "${AWS_ACCESS_KEY}"
+                    secretKey: "${AWS_SECRET_ACCESS_KEY}"
+                    description: "AWS Credentials"
+                - aws:
+                    scope: GLOBAL
+                    id: "ECR_AWS"
+                    accessKey: "${ECR_AWS_ACCESS_KEY_ID}"
+                    secretKey: "${ECR_AWS_SECRET_ACCESS_KEY}"
+                    description: "AWS Credentials login ECR"
+
+
+        jenkins:
+          systemMessage: "Jenkins configured automatically by Jenkins Configuration as Code plugin\n\n"
+
+          # Role-based Authorization Strategy
+          authorizationStrategy:
+            roleBased:
+              roles:
+                global:
+                - name: "admin"
+                  entries:
+                    - user: "admin"
+                  description: "Jenkins administrators"
+                  permissions:
+                  - "Job/Move"
+                  - "Job/Build"
+                  - "Lockable Resources/View"
+                  - "Credentials/Delete"
+                  - "Credentials/ManageDomains"
+                  - "Lockable Resources/Unlock"
+                  - "View/Create"
+                  - "Agent/Configure"
+                  - "Job/Read"
+                  - "Credentials/Update"
+                  - "Agent/Create"
+                  - "Job/Delete"
+                  - "Agent/Build"
+                  - "View/Configure"
+                  - "Metrics/HealthCheck"
+                  - "Lockable Resources/Reserve"
+                  - "Agent/Provision"
+                  - "Metrics/ThreadDump"
+                  - "SCM/Tag"
+                  - "Job/Create"
+                  - "Job/Discover"
+                  - "Credentials/View"
+                  - "Agent/Connect"
+                  - "Agent/Delete"
+                  - "Run/Replay"
+                  - "Agent/Disconnect"
+                  - "Run/Delete"
+                  - "Job/Cancel"
+                  - "Overall/Read"
+                  - "Run/Update"
+                  - "Credentials/Create"
+                  - "Overall/Administer"
+                  - "View/Delete"
+                  - "Job/Configure"
+                  - "Metrics/View"
+                  - "Job Config History/DeleteEntry"
+                  - "Job/Workspace"
+                  - "View/Read"
+
+          # Global ENV
+          globalNodeProperties:
+          - envVars:
+              env:
+              - key: "ECR_REGION"
+                value: "ap-southeast-1"
+              - key: "ECR_SERVER"
+                value: "xxxx.dkr.ecr.ap-southeast-1.amazonaws.com"   # Update real value to xxx
+              - key: "ENV"
+                value: "lab"
+              - key: "HPA_MAXREPLICAS"
+                value: "2"
+              - key: "HPA_MINREPLICAS"
+                value: "1"
+              - key: "INGRESS_FRONTEND"
+                value: "frontend.sonquach.io"
+              - key: "INGRESS_BACKEND"
+                value: "backend.sonquach.io"
+
+
+          clouds:
+          # docker build mercantile-bank services
+          - amazonEC2:
+              name: "docker"
+              credentialsId: "aws"
+              region: "ap-southeast-1"
+              sshKeysCredentialsId: "ec2-private-key"
+              templates:
+              - ami: "ami-xxx"  #AMI get after run Packer build
+                amiType:
+                  unixData:
+                    sshPort: "22"
+                    rootCommandPrefix: ""
+                    slaveCommandPrefix: ""
+                    slaveCommandSuffix: ""
+                    bootDelay: ""
+                associatePublicIp: false
+                spotConfig: null
+                connectBySSHProcess: false
+                connectionStrategy: PRIVATE_IP
+                customDeviceMapping: "/dev/sda1=snap-xxx:50:true:gp2"
+                deleteRootOnTermination: false
+                description: "docker-build-elsa"
+                ebsEncryptRootVolume: DEFAULT
+                ebsOptimized: false
+                hostKeyVerificationStrategy: ACCEPT_NEW
+                idleTerminationMinutes: "10"
+                initScript: ''
+                javaPath: "java"
+                labelString: "docker"
+                launchTimeoutStr: "100"
+                maxTotalUses: -1
+                metadataEndpointEnabled: true
+                metadataHopsLimit: 1
+                amiOwners: ""
+                amiUsers: ""
+                metadataTokensRequired: true
+                minimumNumberOfInstances: 0
+                minimumNumberOfSpareInstances: 0
+                mode: NORMAL
+                monitoring: false
+                numExecutors: 30
+                remoteAdmin: "ubuntu"
+                securityGroups: "docker-elsa-lab"
+                stopOnTerminate: false
+                subnetId: "subnet-xxx"
+                t2Unlimited: false
+                tags:
+                - name: "Name"
+                  value: "docker-build-elsa"
+                tenancy: Default
+                type: T3aXlarge
+                useEphemeralDevices: false
+                zone: ""
+                remoteFS: ""
+                tmpDir: ""
+                jvmopts: ""
+                iamInstanceProfile: ""
+              useInstanceProfileForCredentials: false
+
+
+        # Disabled check security for Job DSL scripts
+        security:
+          globalJobDslSecurityConfiguration:
+            useScriptSecurity: false
+
+          # Git strategy
+          gitHostKeyVerificationConfiguration:
+            sshHostKeyVerificationStrategy: "acceptFirstConnectionStrategy"
+
+        # Shared-library
+        # appearance:
+        #   themeManager:
+        #     disableUserThemes: true
+        #     theme: "darkSystem"
+        unclassified:
+          globalLibraries:
+            libraries:
+            - defaultVersion: "master"
+              implicit: true
+              name: "share-libraries"
+              retriever:
+                modernSCM:
+                  scm:
+                    git:
+                      credentialsId: "jenkins-bitbucket-ssh"
+                      remote: "git@bitbucket.org:elsa/jenkins-share-libraries.git"
+
+        # Configure super-seed job
+        jobs:
+          - script: >
+              job('super-seed') {
+                scm {
+                  git {
+                    remote {
+                      url ('git@bitbucket.org:elsa/configuration-as-code-jenkins-jobdsl.git')
+                      credentials('jenkins-bitbucket-ssh')
+                    }
+                    branch('*/master')
+                  }
+                }
+                triggers {
+                  genericTrigger {
+                    genericVariables {
+                      genericVariable {
+                      key("branch")
+                      value("\$.push.changes[0].new.name")
+                      expressionType("JSONPath") //Optional, defaults to JSONPath
+                      }
+                    }
+                    token('jenkins-k8s-jobdsl')
+                    tokenCredentialId('')
+                    printContributedVariables(true)
+                    printPostContent(true)
+                    silentResponse(false)
+                    regexpFilterExpression("^master\$")
+                    regexpFilterText("\$branch")
+                  }
+                }
+                steps {
+                  dsl {
+                    external('jobdsl/elsa/*.groovy')
+                    removeAction('DELETE')
+                  }
+                }
+              }
+
+  prometheus:
+    enabled: false
+
+  ingress:
+    enabled: true
+    apiVersion: "networking.k8s.io/v1"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/whitelist-source-range: xx.xx.xx.x/32
+    ingressClassName: nginx
+    # Override for the default paths that map requests to the backend
+    paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: >-
+              {{template "jenkins.fullname" .}}
+            port:
+              number: 8080
+    hostName: deploy-elsa.sonquach.io
+    tls:
+      - secretName: deploy-elsa.sonquach.io
+        hosts:
+          - deploy-elsa.sonquach.io
+
+# Storage Class
+persistence:
+  enabled: true
+  storageClass: ebs-csi
+  accessMode: "ReadWriteOnce"
+  size: "20Gi"
+  # existingClaim: jenkins
