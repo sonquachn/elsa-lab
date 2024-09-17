@@ -1,0 +1,194 @@
+image:
+  tag: latest
+ingress:
+  enabled: true
+  host: backend.sonquach.io
+service:
+  type: ClusterIP
+rbac:
+  enable: true
+resources:
+  limits:
+    cpu: 1
+    memory: 1500Mi
+  requests:
+    cpu: 200m
+    memory: 1000Mi
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  failureThreshold: 3
+readinessProbe:
+  httpGet:
+    path: /
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  failureThreshold: 3
+
+securityContext:
+  enabled: true
+# We can use Vault to store sensetive values, 
+env:
+  - name: MONGODB_URI
+    valueFrom:
+        secretKeyRef:
+          name: mongodb-uri
+          key: url
+  - name: BASE_URL
+    value: "http://localhost:8080"
+  - name: SITE_CONTACT_EMAIL
+    value: "quachngocsonit@gmail.com"
+  - name: TRANSACTION_EMAIL
+    value: "quachngocsonit@gmail.com"
+  - name: SESSION_SECRET
+    valueFrom:
+        secretKeyRef:
+          name: session-secret
+          key: key
+  - name: MAILGUN_USER
+    valueFrom:
+        secretKeyRef:
+          name: mailgun
+          key: user
+  - name: MAILGUN_PASSWORD
+    valueFrom:
+        secretKeyRef:
+          name: mailgun
+          key: password
+  - name: SMTP_USER
+    valueFrom:
+        secretKeyRef:
+          name: smtp
+          key: user
+  - name: SMTP_PASSWORD
+    valueFrom:
+        secretKeyRef:
+          name: smtp
+          key: password
+  - name: SMTP_HOST
+    valueFrom:
+        secretKeyRef:
+          name: smtp
+          key: host
+  - name: NYT_KEY
+    valueFrom:
+        secretKeyRef:
+          name: nyt-key
+          key: key
+  - name: LASTFM_KEY
+    valueFrom:
+        secretKeyRef:
+          name: lastfm-key
+          key: key
+  - name: LASTFM_SECRET
+    valueFrom:
+        secretKeyRef:
+          name: lastfm-secret
+          key: secret
+  - name: SNAPCHAT_ID
+    valueFrom:
+        secretKeyRef:
+          name: sanpchat-id
+          key: id
+  - name: SNAPCHAT_SECRET
+    valueFrom:
+        secretKeyRef:
+          name: snapchat-secret
+          key: secret
+  - name: FACEBOOK_ID
+    valueFrom:
+        secretKeyRef:
+          name: facebook-id
+          key: id
+  - name: FACEBOOK_SECRET
+    valueFrom:
+        secretKeyRef:
+          name: facebook-secret
+          key: secret
+  - name: GITHUB_ID
+    valueFrom:
+        secretKeyRef:
+          name: github-id
+          key: id
+  - name: GITHUB_SECRET
+    valueFrom:
+        secretKeyRef:
+          name: github-secret
+          key: secret
+  - name: TWITTER_KEY
+    valueFrom:
+        secretKeyRef:
+          name: twitter-key
+          key: key
+  - name: TWITTER_SECRET
+    valueFrom:
+        secretKeyRef:
+          name: twitter-secret
+          key: secret
+  - name: GOOGLE_ID
+    valueFrom:
+        secretKeyRef:
+          name: google-id
+          key: id
+  - name: GOOGLE_SECRET
+    valueFrom:
+        secretKeyRef:
+          name: google-secret
+          key: secret
+  - name: LINKEDIN_ID
+    valueFrom:
+        secretKeyRef:
+          name: linkedin-id
+          key: id
+  - name: LINKEDIN_SECRET
+    valueFrom:
+        secretKeyRef:
+          name: linkedin-secret
+          key: secret
+  - name: TUMBLR_KEY
+    valueFrom:
+        secretKeyRef:
+          name: tumblr-key
+          key: key
+  - name: TUMBLR_SECRET
+    valueFrom:
+        secretKeyRef:
+          name: tumblr-secret
+          key: secret
+  - name: RECAPTCHA_SITE_KEY
+    valueFrom:
+        secretKeyRef:
+          name: github-key
+          key: key
+  - name: RECAPTCHA_SECRET_KEY
+    valueFrom:
+        secretKeyRef:
+          name: github-secret
+          key: secret
+  - name: STEAM_KEY
+    valueFrom:
+        secretKeyRef:
+          name: steam-key
+          key: key
+  - name: LOB_KEY
+    valueFrom:
+        secretKeyRef:
+          name: lob-secret
+          key: secret
+  - name: GOOGLE_MAP_API_KEY
+    valueFrom:
+        secretKeyRef:
+          name: google-map-key
+          key: key
+  - name: ALPHA_VANTAGE_KEY
+    valueFrom:
+        secretKeyRef:
+          name: alpha-vantage-secret
+          key: secret
+
+

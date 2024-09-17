@@ -1,0 +1,49 @@
+import java.text.SimpleDateFormat
+
+currentBuild.displayName = new SimpleDateFormat("yy.MM.dd.HH.mm.ss").format(new Date()) + "-" + "${ENV}"
+def label = "jenkins-slave-${UUID.randomUUID().toString()}"
+
+podTemplate(
+  label: label,
+  namespace: "elsa-${ENV}",
+  serviceAccount: "build",
+  yaml: """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: helm
+    image: sonquachn/helm
+    command: ["cat"]
+    tty: true
+  - name: kubectl
+    image: sonquachn/kubectl
+    command: ["cat"]
+    tty: true
+"""
+) {
+  node(label) {
+    node("docker") {
+      stage("build") {
+        checkout scm
+        k8sBuildImageECR()
+      }
+    }
+    stage("deploy") {
+      try {
+        container("helm") {
+          checkout scm
+          k8sUpgradeELSAECR()
+        }
+        container("kubectl") {
+          k8sRolloutELSA()
+        }
+      } catch(e) {
+        container("helm") {
+          echo 'Err: Incremental Build failed with Error: ' + e.toString()
+          error "Failed deploy lab environment"
+        }
+      }
+    }
+  }
+}
